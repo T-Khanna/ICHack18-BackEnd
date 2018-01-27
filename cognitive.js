@@ -8,7 +8,7 @@ function cognitive(image_url, call_back) {
     method: 'POST',
     url: 'https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize',
     headers:
-    { 'postman-token': '9ee3bd2c-0adc-26d4-be0a-0f7cc61fc977',
+    { 
       'cache-control': 'no-cache',
       'Ocp-apim-subscription-key': '4bd0a14f6c04421d80749ec0081d89fc',
       'content-type': 'application/json'
@@ -51,5 +51,4 @@ function print_res(result) {
 	console.log(result);
 }
 
-image_url = "https://emotion-picker.herokuapp.com/images/yianni.png";
-cognitive(image_url, print_res);
+module.exports.cognitive = cognitive;

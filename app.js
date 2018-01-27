@@ -4,6 +4,7 @@ var port = process.env.PORT || 8080;
 var hostname_url = 'https://emotion-picker.herokuapp.com'
 var http = require('http');
 var randomstring = require('randomstring');
+var cognitive = require('./cognitive.js');
 
 // Send index.html to all requests 
 var app = http.createServer(function(req, res) {
@@ -42,7 +43,7 @@ io.on('connection', function (socket) {
 
     image_scores[socket] = []
     // perform sentiment analysis here
-    // TODO: cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
+    cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
   });
 
   socket.on('disconnect', function () {
@@ -85,15 +86,18 @@ function handle_emotion(socket, image_path) {
   console.log("analysing image " + image_path)
   return function (emotions) {
     //take first emotion
-    console.log("got emotions " + emotions + " for image: " + image_path);
-    console.log("taking the first emotion")
-    image_data[socket].push({image_path: emotions[0]});
+    console.log("got emotions " + JSON.stringify(emotions) + " for image: " + image_path);
+    console.log("storing emotions for the images")
 
-    if (image_data[socket].length >= 3) {
+    // Store emotions for each image for each socket
+    image_scores[socket].push({image_path: emotions});
+
+    if (image_scores[socket].length >= 3) {
       // Recievd all images, choose best image
       // TODO: need all group to submit images
       // choose place that is most prefered
       // send place back to everyone
+      console.log("recieved at least threee photos");
     }
   }
 }
