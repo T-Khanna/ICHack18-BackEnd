@@ -1,4 +1,4 @@
-vat: querystring = require('querystring');
+var querystring = require('querystring');
 var http = require('http');
 var fs = require('fs');
 
@@ -22,24 +22,14 @@ function cognitive(image_url, call_back) {
 
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
-    // TODO: Handle body
-    console.log(body);
+
+    process_data(body, call_back);
   });
 }
 
+
 function process_data(data, call_back) {
-    console.log(data);
-}
-
-function real_process_data(data, call_back) {
-    result = [];
-    for (var i = 0; i < data.length; i++) {
-        var face_data = data[i]
-	var emotion =  get_emotion(face_data);
-	result.push(emotion);
-    }
-
-    call_back(result);
+    call_back(data);
 }
 
 function get_emotion(face_data) {
@@ -57,5 +47,9 @@ function get_emotion(face_data) {
 	return key;
 }
 
+function print_res(result) {
+	console.log(result);
+}
+
 image_url = "https://emotion-picker.herokuapp.com/images/yianni.png";
-cognitive(image_url, get_emotion);
+cognitive(image_url, print_res);
