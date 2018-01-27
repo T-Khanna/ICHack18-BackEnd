@@ -60,13 +60,13 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
     query: searchTerm,
     location: userLocation,
     language: 'en',
-    radius: 1000,
+    radius: 500,
     opennow: true
   };
   gMapsClient.places(query, function (err, response) {
     var placesArray = response.json['results'];
-    var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
-    var top3Results = sortedResults.slice(0, 3);
+    // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
+    var top3Results = placesArray.slice(0, 3);
     responseHandler(top3Results);
   });
 }
