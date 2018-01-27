@@ -5,10 +5,9 @@ var fs = require('fs');
 
 
 function cognitive(image_url) {
-    
-   
+
     var url = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize?";
-    var sub_key = "4bd0a14f6c04421d80749ec0081d89fc";
+    var sub_key = '4bd0a14f6c04421d80749ec0081d89fc';
 
     var post_options = {
         host: 'westus.api.cognitive.microsoft.com',
@@ -17,7 +16,7 @@ function cognitive(image_url) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': '4bd0a14f6c04421d80749ec0081d89fc'
+            'Ocp-Apim-Subscription-Key': sub_key
         }
     };
 
@@ -31,15 +30,6 @@ function cognitive(image_url) {
 
     post_req.end();
 
-
-/*
-    var faceRectangle = data[0].faceRectangle;
-    var faceRectangleList = $('#faceRectangle');
-    // Get emotion confidence scores
-    var scores = data[0].scores;
-
-*/
-
 }
 
 function process_data(data) {
@@ -50,6 +40,29 @@ function real_process_data(data) {
     result = [];
     for (var i = 0; i < data.length; i++) {
         var face_data = data[i]
-        face_data
+	var emotion =  get_emotion(face_data);
+	result.push(emotion);
     }
+
+    return result;
 }
+
+function get_emotion(face_data) {
+	var scores = face_data['scores'];
+	var max = 0;
+	var emotion = "";
+
+	for (var key in scores) {
+		if (scores[key] > max) {
+			max = scores[key];
+			emotion = key;
+		}
+	}
+
+	return key;
+}
+
+
+
+
+
