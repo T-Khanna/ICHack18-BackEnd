@@ -3,7 +3,8 @@ var fs = require('fs');
 var port = process.env.PORT || 8080;
 var http = require('http');
 
-// Send index.html to all requests var app = http.createServer(function(req, res) {
+// Send index.html to all requests 
+var app = http.createServer(function(req, res) {
   res.writeHead(200, {'Content-Type': 'image/jpg'});
   try {
     index = fs.readFileSync(__dirname + req.url);
