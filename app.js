@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 var fs = require('fs');
-
 var port = process.env.PORT || 8080;
-const server = require('http').createServer();
-const io = require('socket.io')(server, {
-  path: '/path',
-  serveClient: true,
-  // below are engine.IO options
-  pingInterval: 10000,
-  pingTimeout: 5000,
-  cookie: false
+var http = require('http');
+
+// Send index.html to all requests
+var app = http.createServer(function(req, res) {
+res.writeHead(200, {'Content-Type': 'text/html'});
+  index = fs.readFileSync(__dirname + '/index.html');
+  res.end(index);
 });
 
-server.listen(port);
+// Socket.io server listens to our app
+var io = require('socket.io').listen(app);
+app.listen(port);
+
 console.log("server listening on port " + port);
 
 io.on('connection', function (socket) {
