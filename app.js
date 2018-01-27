@@ -60,7 +60,7 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
     query: searchTerm,
     location: userLocation,
     language: 'en',
-    radius: 2000,
+    radius: 1000,
     opennow: true
   };
   gMapsClient.places(query, function (err, response) {
