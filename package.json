@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node app.js"
   },
+  "engines" : {
+    "node" : ">=4.2.6"
+  },
   "dependencies": {
     "@google/maps": "^0.4.5",
     "debug": "~2.6.9",
