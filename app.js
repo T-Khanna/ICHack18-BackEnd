@@ -31,8 +31,11 @@ io.on('connection', function (socket) {
     });
   });
 
-  socket.on('message', function (from, msg) {
-    console.log('message by ', from, ' saying ', msg); });
+  socket.on('image', function(imagedata) {
+    console.log("recieved file");
+    fs.writeFileSync(__dirname + "/image.jpg", imagedata, "binary");
+    console.log("saved file");
+  });
 
   socket.on('disconnect', function () {
     console.log("user disconnect");
