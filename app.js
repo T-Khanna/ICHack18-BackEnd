@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 var fs = require('fs');
 var port = process.env.PORT || 8080;
+var hostname_url = 'https://emotion-picker.herokuapp.com'
 var http = require('http');
+var randomstring = require('randomstring');
+var cognitive = require('./cognitive.js');
 
 // Send index.html to all requests 
 var app = http.createServer(function(req, res) {
@@ -19,8 +22,9 @@ var app = http.createServer(function(req, res) {
 var io = require('socket.io').listen(app);
 app.listen(port);
 
-console.log("server listening on port " + port);
+image_scores = {};
 
+console.log("server listening on port " + port);
 io.on('connection', function (socket) {
   console.log("user connected");
   socket.emit('server-message', 'nice to meet you');
@@ -31,8 +35,16 @@ io.on('connection', function (socket) {
     });
   });
 
-  socket.on('message', function (from, msg) {
-    console.log('message by ', from, ' saying ', msg); });
+  socket.on('image', function(imagedata) {
+    console.log("recieved file");
+    image_path = "/images/" + randomstring.generate() + ".jpg"
+    fs.writeFileSync(__dirname + image_path, imagedata, "binary");
+    console.log("saved file");
+
+    image_scores[socket] = []
+    // perform sentiment analysis here
+    cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
+  });
 
   socket.on('disconnect', function () {
     console.log("user disconnect");
@@ -69,4 +81,25 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
     responseHandler(top3Results);
   });
 }
+
+function handle_emotion(socket, image_path) {
+  console.log("analysing image " + image_path)
+  return function (emotions) {
+    //take first emotion
+    console.log("got emotions " + JSON.stringify(emotions) + " for image: " + image_path);
+    console.log("storing emotions for the images")
+
+    // Store emotions for each image for each socket
+    image_scores[socket].push({image_path: emotions});
+
+    if (image_scores[socket].length >= 3) {
+      // Recievd all images, choose best image
+      // TODO: need all group to submit images
+      // choose place that is most prefered
+      // send place back to everyone
+      console.log("recieved at least threee photos");
+    }
+  }
+}
+
 module.exports = app;
