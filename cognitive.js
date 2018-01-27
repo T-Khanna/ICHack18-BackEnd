@@ -58,3 +58,7 @@ function get_emotion(face_data) {
 
 	return key;
 }
+
+image_url = "https://emotion-picker.herokuapp.com/images/yianni.jpg";
+
+cognitive(image_url, func(data) {});
