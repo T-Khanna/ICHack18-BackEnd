@@ -42,7 +42,7 @@ io.on('connection', function (socket) {
 
     image_scores[socket] = []
     // perform sentiment analysis here
-    // cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
+    // TODO: cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
   });
 
   socket.on('disconnect', function () {
@@ -82,6 +82,7 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
 }
 
 function handle_emotion(socket, image_path) {
+  console.log("analysing image " + image_path)
   return function (emotions) {
     //take first emotion
     console.log("got emotions " + emotions + " for image: " + image_path);
