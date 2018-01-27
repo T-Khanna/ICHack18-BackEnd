@@ -92,6 +92,9 @@ function handle_emotion(socket, image_path) {
     // Store emotions for each image for each socket
     image_scores[socket].push({image_path: emotions});
 
+    //Emotion debugging
+    socket.emit('emotions', emotions);
+
     if (image_scores[socket].length >= 3) {
       // Recievd all images, choose best image
       // TODO: need all group to submit images
