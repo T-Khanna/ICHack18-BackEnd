@@ -2,9 +2,7 @@ var querystring = require('querystring');
 var http = require('http');
 var fs = require('fs');
 
-
-
-function cognitive(image_url) {
+function cognitive(image_url, call_back) {
 
     var url = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize?";
     var sub_key = '4bd0a14f6c04421d80749ec0081d89fc';
@@ -24,19 +22,18 @@ function cognitive(image_url) {
         'url': image_url
     });
 
-    var post_req = http.request(post_options, process_data(data))
+    var post_req = http.request(post_options, process_data(data, call_back))
 
     post_req.write(post_data);
 
     post_req.end();
-
 }
 
-function process_data(data) {
+function process_data(data, call_back) {
     console.log(data);
 }
 
-function real_process_data(data) {
+function real_process_data(data, call_back) {
     result = [];
     for (var i = 0; i < data.length; i++) {
         var face_data = data[i]
@@ -44,7 +41,7 @@ function real_process_data(data) {
 	result.push(emotion);
     }
 
-    return result;
+    call_back(result);
 }
 
 function get_emotion(face_data) {
@@ -61,8 +58,3 @@ function get_emotion(face_data) {
 
 	return key;
 }
-
-
-
-
-
