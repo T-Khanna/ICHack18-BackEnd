@@ -1,26 +1,17 @@
 #!/usr/bin/env node
 
-var express = require('express');
-var path = require('path');
-var bodyParser = require('body-parser');
+var io = require('socket.io')(8080);
 
-var app = express();
+var fs = require('fs');
 
-// View engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hbs');
+io.on('connection', function (socket) {
+    io.emit('this', { will: 'be received by everyone'});
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+    socket.on('private message', function (from, msg) {
+          console.log('I received a private message by ', from, ' saying ', msg);
+        });
 
-var port = process.env.PORT || '5000';
-app.listen(port, function () {
-  console.log('Listening on port ' + port);
+    socket.on('disconnect', function () {
+          io.emit('user disconnected');
+        });
 });
-
-// Starting page upon loading the web app
-app.get('/', function(req, res) {
-  res.render('index', { title: 'App X Server' });
-});
-
-module.exports = app;
