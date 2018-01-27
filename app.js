@@ -5,9 +5,14 @@ var http = require('http');
 
 // Send index.html to all requests
 var app = http.createServer(function(req, res) {
-res.writeHead(200, {'Content-Type': 'text/html'});
-  index = fs.readFileSync(__dirname + '/index.html');
-  res.end(index);
+  res.writeHead(200, {'Content-Type': 'image/jpg'});
+  try {
+    index = fs.readFileSync(__dirname + req.url);
+    res.end(index);
+  } catch (err) {
+    console.log("Couldn't find file: \n\t" + err);
+    res.end();
+  }
 });
 
 // Socket.io server listens to our app
