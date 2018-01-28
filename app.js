@@ -197,6 +197,7 @@ function handle_emotion(client_id, image_path, place) {
         var n = 0
         var s = 0;
         var count = places[place].length;
+        console.log("tsetsdjlafjdlk: " + JSON.stringify(places[place]));
         places[place].forEach(function (emotions) {
           h += places[place]['happiness'];
           n += places[place]['neutral'];
