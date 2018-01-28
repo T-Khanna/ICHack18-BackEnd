@@ -31,11 +31,12 @@ io.on('connection', function (socket) {
 
   //Set up basic user data
   connected_users[socket] = {};
-  connected_users[socket]['places'] = {}
+  connected_users[socket]['places'] = {};
+  connected_users[socket]['finished-processing-places'] = false;
 
   socket.on('search-places', function (searchTerm, userLocation) {
     console.log("searching for places: " + searchTerm);
-    getNearbyPlaces(searchTerm, userLocation, function(result) {
+    getNearbyPlaces(socket, searchTerm, userLocation, function(result) {
       console.log("found places, sending to clients");
       io.sockets.emit('place-results', result);
     });
@@ -62,7 +63,7 @@ var gMapsClient = require('@google/maps').createClient({
   key: 'AIzaSyDPFxFyh9hvR7OY4bu8ZU7GVKTHY6YCC2s'
 });
 
-function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
+function getNearbyPlaces(socket, searchTerm, userLocation, responseHandler) {
   var sort_by = function(field, reverse, primer) {
     var key = primer ?
       function(json) {return primer(json[field])} :
