@@ -118,7 +118,7 @@ function handle_emotion(client_id, image_path, place) {
 
     // Store emotions for each image for each socket
     //connected_users[client_id].push([]);
-    console.log("these are the connected users: " + JSON.stringify(connected_users));
+    console.log("these are the connected users: " + JSON.stringify(Object.keys(connected_users)));
 
     if (connected_users[client_id]['places'][place] == undefined) {
       connected_users[client_id]['places'][place] = []
