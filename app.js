@@ -199,9 +199,9 @@ function handle_emotion(client_id, image_path, place) {
         var count = places[place].length;
         console.log("tsetsdjlafjdlk: " + JSON.stringify(places[place]));
         places[place].forEach(function (emotions) {
-          h += places[place]['happiness'];
-          n += places[place]['neutral'];
-          s += places[place]['sadness'];
+          h += places[place][emotions]['happiness'];
+          n += places[place][emotions]['neutral'];
+          s += places[place][emotions]['sadness'];
         });
         places_score[place] = {'happiness': h/count, 'neutral': n/count, 'sadness':s/count};
         console.log("place " + place + " has score " + JSON.stringify(places_score[place]));
