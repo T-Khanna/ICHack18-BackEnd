@@ -183,7 +183,7 @@ function handle_emotion(socket, image_path, place) {
           max_score = -100;
           max_place = null;
 
-          places.forEach(function (place) {
+          Object.keys(places).forEach(function (place) {
             aggregate_user_place_score = 0;
             Object.keys(connected_users).forEach(function (socket) {
               aggregate_user_place_score += connected_users[socket]['places-score'][place];
