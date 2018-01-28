@@ -114,7 +114,7 @@ function handle_emotion(socket, image_path, place) {
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    totalimages = totalImages(connected_users[socket]);
+    totalimages = totalImages(connected_users[socket]['places']);
     console.log("number of images taken so, far " + totalimages);
 
     if (totalimages >= connected_users[socket]['number-of-places']) {
