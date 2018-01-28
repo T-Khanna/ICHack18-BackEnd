@@ -33,20 +33,22 @@ console.log("server listening on port " + port);
 io.on('connection', function (socket) {
   console.log("user connected");
 
+  var client_id = randomString.generate();
   //Set up basic user data
-  connected_users[socket] = {};
-  connected_users[socket]['places'] = {};
-  connected_users[socket]['finished-processing-places'] = false;
+  connected_users[client_id] = {};
+  connected_users[client_id]['socket'] = socket;
+  connected_users[client_id]['places'] = {};
+  connected_users[client_id]['finished-processing-places'] = false;
 
   socket.on('search-places', function (searchTerm, userLocation) {
     console.log("searching for places: " + searchTerm);
-    getNearbyPlaces(socket, searchTerm, userLocation, function(result) {
+    getNearbyPlaces(client_id, searchTerm, userLocation, function(result) {
       console.log("found places, sending to clients");
 
       //Get number of clients connected
       // Race condition on number of clients connected
       number_of_clients = 0;
-      Object.keys(connected_users).forEach(function (socket) {
+      Object.keys(connected_users).forEach(function (client_id) {
         number_of_clients += 1;
       });
 
@@ -64,12 +66,12 @@ io.on('connection', function (socket) {
     console.log("saved file");
 
     // perform sentiment analysis here
-    cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path, place))
+    cognitive.cognitive(hostname_url + image_path, handle_emotion(client_id, image_path, place))
   });
 
   socket.on('disconnect', function () {
     console.log("user disconnect");
-    delete connected_users[socket];
+    delete connected_users[client_id];
   });
 });
 
@@ -78,7 +80,7 @@ var gMapsClient = require('@google/maps').createClient({
   key: 'AIzaSyDPFxFyh9hvR7OY4bu8ZU7GVKTHY6YCC2s'
 });
 
-function getNearbyPlaces(socket, searchTerm, userLocation, responseHandler) {
+function getNearbyPlaces(client_id, searchTerm, userLocation, responseHandler) {
   var sort_by = function(field, reverse, primer) {
     var key = primer ?
       function(json) {return primer(json[field])} :
@@ -101,13 +103,13 @@ function getNearbyPlaces(socket, searchTerm, userLocation, responseHandler) {
     var placesArray = response.json['results'];
     // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
     var top3Results = placesArray.slice(0, NUMBER_OF_PLACES);
-    connected_users[socket]['number-of-places'] = top3Results.length;
+    connected_users[client_id]['number-of-places'] = top3Results.length;
     console.log("found " + top3Results.length + " number of places");
     responseHandler(top3Results);
   });
 }
 
-function handle_emotion(socket, image_path, place) {
+function handle_emotion(client_id, image_path, place) {
   console.log("analysing image " + image_path);
   return function (emotions) {
     //take first emotion
@@ -115,33 +117,30 @@ function handle_emotion(socket, image_path, place) {
     console.log("storing emotions for the images");
 
     // Store emotions for each image for each socket
-    //connected_users[socket].push([]);
+    //connected_users[client_id].push([]);
     console.log("these are the connected users: " + JSON.stringify(connected_users));
 
-    if (connected_users[socket]['places'][place] == undefined) {
-      connected_users[socket]['places'][place] = []
+    if (connected_users[client_id]['places'][place] == undefined) {
+      connected_users[client_id]['places'][place] = []
     }
 
     if (emotions.length == 0) {
       console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
-      connected_users[socket]['places'][place].push(0);
+      connected_users[client_id]['places'][place].push(0);
     } else {
-      connected_users[socket]['places'][place].push(calculatePlaceScore(emotions[0]['scores']));
+      connected_users[client_id]['places'][place].push(calculatePlaceScore(emotions[0]['scores']));
     }
 
-    //Emotion debugging
-    socket.emit('emotions', emotions);
-
-    var totalNumberOfImages = totalImages(connected_users[socket]['places']);
+    var totalNumberOfImages = totalImages(connected_users[client_id]['places']);
     console.log("number of images taken so, far " + totalNumberOfImages);
 
-    if (totalNumberOfImages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
+    if (totalNumberOfImages >= connected_users[client_id]['number-of-places'] * IMAGES_PER_PLACE) {
       // Received all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
       // send place back to everyone
 
-      //[{"faceRectangle":{"height":782,"left":754,"top":1172,"width":782},
+      //[{"faceRectangle":{"height":782,"left":754,"top":1172,"wclient_idth":782},
       // "scores":{"anger":0.000006604076,"contempt":0.00376007543,
       // "disgust":0.000002866387,"fear":8.441607e-9,
       // "happiness":0.0143168205,"neutral":0.98168993,
@@ -152,9 +151,9 @@ function handle_emotion(socket, image_path, place) {
       var maxScore = -10;
 
       //Calculate scores for each place
-      var places = connected_users[socket]['places'];
-      connected_users[socket]['places-score'] = {};
-      var places_score = connected_users[socket]['places-score'];
+      var places = connected_users[client_id]['places'];
+      connected_users[client_id]['places-score'] = {};
+      var places_score = connected_users[client_id]['places-score'];
       Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
         places[place].forEach(function (score) {
@@ -170,7 +169,7 @@ function handle_emotion(socket, image_path, place) {
 //      });
 //      if (aggregateScore > maxScore) {
 //        maxScore = aggregateScore;
-//        placeId = i;
+//        placeclient_id = i;
 //      }
 //    }
 
@@ -186,8 +185,8 @@ function handle_emotion(socket, image_path, place) {
 
           Object.keys(places).forEach(function (place) {
             aggregate_user_place_score = 0;
-            Object.keys(connected_users).forEach(function (socket) {
-              aggregate_user_place_score += connected_users[socket]['places-score'][place];
+            Object.keys(connected_users).forEach(function (client_id) {
+              aggregate_user_place_score += connected_users[client_id]['places-score'][place];
             });
             if (aggregate_user_place_score > max_score) {
               max_score = aggregate_user_place_score;
