@@ -236,30 +236,32 @@ function handle_emotion(client_id, image_path, place) {
             console.log("got aggregated score of " + aggregate_user_place_score + " for place " + place);
             if (aggregate_user_place_score > max_score) {
               max_score = aggregate_user_place_score;
-              max_place = place;
-            }
+              max_place = place; }
           });
           console.log("found highest score at place: " + max_place + ", with score " + max_score);
 
           var graph_data = [];
-          var index;
+          var user_i = {};
           Object.keys(connected_users).forEach(function (c_id) {
             graph_data.push({});
-            if (client_id == c_id) {
               index = graph_data.length-1;
-            }
+              user_i[c_id] = index;
             Object.keys(places).forEach(function (place) {
               graph_data[graph_data.length - 1][place] = connected_users[c_id]['places-score'][place];
             });
           });
 
-          var data =
-          {'final_place': max_place,
-          'graph_data': graph_data,
-          'user': index
-          };
-          io.sockets.emit('best-place', data);
-          console.log("sending data to client: " + JSON.stringify(data));
+          Object.keys(user_i).forEach(function (id){
+            var data =
+            {'final_place': max_place,
+            'graph_data': graph_data,
+            'user': user_i[id]
+            };
+
+            connected_users[id]['socket'].emit('best-place', data);
+            //io.sockets.emit('best-place', data);
+            console.log("sending data to client: " + JSON.stringify(data));
+          });
       }
 //      release();
 //    });
