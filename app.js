@@ -43,6 +43,10 @@ var IMAGES_PER_PLACE = 2;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
+  if (unfinished_clients > 0) {
+    console.log("rejecting connection as " + unfinished_clients + " are halfway through their decisions");
+    return;
+  }
   var client_id = randomString.generate();
   console.log("user " + client_id + " connected");
 
@@ -52,6 +56,9 @@ io.on('connection', function (socket) {
   connected_users[client_id]['places'] = {};
   connected_users[client_id]['finished-processing-places'] = false;
 
+  console.log("number of clients: " + number_of_clients());
+  io.sockets.emit('number-of-clients', number_of_clients());
+
   socket.on('search-places', function (searchTerm, userLocation) {
     console.log("searching for places: " + searchTerm);
     getNearbyPlaces(client_id, searchTerm, userLocation, function(result) {
@@ -59,12 +66,8 @@ io.on('connection', function (socket) {
 
       //Get number of clients connected
       // Race condition on number of clients connected
-      number_of_clients = 0;
-      Object.keys(connected_users).forEach(function (client_id) {
-        number_of_clients += 1;
-      });
 
-      unfinished_clients = number_of_clients;
+      unfinished_clients = number_of_clients();
 
       io.sockets.emit('place-results', result);
       console.log(JSON.stringify(result));
@@ -85,6 +88,8 @@ io.on('connection', function (socket) {
     console.log("user disconnect");
     unfinished_clients -= 1;
     delete connected_users[client_id];
+    console.log("number of clients: " + number_of_clients());
+    io.sockets.emit('number-of-clients', number_of_clients());
   });
 });
 
@@ -242,6 +247,14 @@ function calculatePlaceScore(emotionScores) {
     surpriseFactor * emotionScores['surprise'] +
     happinessFactor * emotionScores['happiness'];
 
+}
+
+function number_of_clients() {
+  number = 0
+  Object.keys(connected_users).forEach(function (client_id) {
+    number += 1;
+  });
+  return number;
 }
 
 module.exports = app;
