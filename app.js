@@ -29,7 +29,10 @@ var app = http.createServer(function(req, res) {
 });
 
 // Socket.io server listens to our app
-var io = require('socket.io').listen(app);
+var io = require('socket.io').listen(app, {
+  pingInterval: 4000,
+  pingTimeout: 2500
+});
 app.listen(port);
 
 var connected_users = {};
