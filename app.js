@@ -53,6 +53,7 @@ io.on('connection', function (socket) {
       unfinished_clients = number_of_clients;
 
       io.sockets.emit('place-results', result);
+      console.log(JSON.stringify(result));
     });
   });
 
@@ -115,6 +116,8 @@ function handle_emotion(socket, image_path, place) {
 
     // Store emotions for each image for each socket
     //connected_users[socket].push([]);
+    console.log("these are the connected users: " + JSON.stringify(connected_users));
+
     if (connected_users[socket]['places'][place] == undefined) {
       connected_users[socket]['places'][place] = []
     }
