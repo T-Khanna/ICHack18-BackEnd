@@ -10,7 +10,8 @@ function cognitive(image_url, call_back) {
     headers:
     { 
       'cache-control': 'no-cache',
-      'Ocp-apim-subscription-key': '4bd0a14f6c04421d80749ec0081d89fc',
+      // 'Ocp-apim-subscription-key': '4bd0a14f6c04421d80749ec0081d89fc',
+      'Ocp-apim-subscription-key': '59cc08cfa1984838bb89ce5664159fe2',
       'content-type': 'application/json'
     },
     body:
