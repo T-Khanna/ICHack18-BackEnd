@@ -16,6 +16,21 @@ var app = http.createServer(function(req, res) {
     });
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end(JSON.stringify(files));
+  } else if (req.url == '/view') {
+    files = [];
+    fs.readdirSync(__dirname + '/images/').forEach(file => {
+      files.push('/images/' + file);
+    });
+
+    res.writeHead(200, {'Content-Type': 'text/html'});
+
+    body = '';
+    files.forEach(function (path) {
+      body += '<img src="' + path +'" width="25%" style="float: left; width: 300px; margin-right: 1%; margin-bottom: 0.5em;">'
+    });
+
+    html = '<html><head><title>View uploaded images</title></head><body>' + body + '</body><script>function a() {location.reload();}; console.log("downloading images"); function b() {setTimeout(a, 10000);}; window.onload=b;</script></html>';
+    res.end(html);
   } else {
     res.writeHead(200, {'Content-Type': 'image/jpg'});
     try {
@@ -60,6 +75,7 @@ io.on('connection', function (socket) {
   io.sockets.emit('number-of-clients', number_of_clients());
 
   socket.on('search-places', function (searchTerm, userLocation) {
+    unfinished_clients = number_of_clients();
     console.log("searching for places: " + searchTerm);
     getNearbyPlaces(client_id, searchTerm, userLocation, function(result) {
       console.log("found places, sending to clients");
@@ -67,7 +83,6 @@ io.on('connection', function (socket) {
       //Get number of clients connected
       // Race condition on number of clients connected
 
-      unfinished_clients = number_of_clients();
 
       io.sockets.emit('place-results', result);
       console.log(JSON.stringify(result));
