@@ -79,8 +79,8 @@ function getNearbyPlaces(socket, searchTerm, userLocation, responseHandler) {
     query: searchTerm,
     location: userLocation,
     language: 'en',
-    radius: 500,
-    opennow: true
+    // opennow: true,
+    radius: 500
   };
   gMapsClient.places(query, function (err, response) {
     var placesArray = response.json['results'];
