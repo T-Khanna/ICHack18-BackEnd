@@ -80,6 +80,7 @@ io.on('connection', function (socket) {
 
   socket.on('disconnect', function () {
     console.log("user disconnect");
+    unfinished_clients -= 1;
     delete connected_users[client_id];
   });
 });
@@ -186,7 +187,7 @@ function handle_emotion(client_id, image_path, place) {
 //      }
 //    }
 
-      unfinished_clients_lock.writeLock(function (release) {
+//      unfinished_clients_lock.writeLock(function (release) {
         unfinished_clients -= 1;
         console.log("Waiting on " + unfinished_clients + " clients");
         if (unfinished_clients == 0) {
@@ -209,9 +210,9 @@ function handle_emotion(client_id, image_path, place) {
           console.log("found highest score at place: " + max_place + ", with score " + max_score);
 
           io.sockets.emit('best-place', max_place);
-        }
-        release();
-      });
+      }
+//      release();
+//    });
     }
   }
 }
