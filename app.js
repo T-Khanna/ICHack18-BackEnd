@@ -22,16 +22,19 @@ var app = http.createServer(function(req, res) {
 var io = require('socket.io').listen(app);
 app.listen(port);
 
-var image_scores = {};
+var connected_users = {};
 var NUMBER_OF_PLACES = 3;
-var IMAGES_PER_PLACE = 3;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
   console.log("user connected");
-  socket.emit('server-message', 'nice to meet you');
+
+  //Set up basic user data
+  connected_users[socket] = {};
+  connected_users[socket]['places'] = {}
 
   socket.on('search-places', function (searchTerm, userLocation) {
+    console.log("searching for places: " + searchTerm);
     getNearbyPlaces(searchTerm, userLocation, function(result) {
       console.log("found places, sending to clients");
       io.sockets.emit('place-results', result);
@@ -44,16 +47,13 @@ io.on('connection', function (socket) {
     fs.writeFileSync(__dirname + image_path, imagedata, "binary");
     console.log("saved file");
 
-    if (image_scores[socket] == undefined) {
-      image_scores[socket] = {};
-    }
     // perform sentiment analysis here
     cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path, place))
   });
 
   socket.on('disconnect', function () {
     console.log("user disconnect");
-    delete image_scores[socket];
+    delete connected_users[socket];
   });
 });
 
@@ -85,6 +85,7 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
     var placesArray = response.json['results'];
     // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
     var top3Results = placesArray.slice(0, NUMBER_OF_PLACES);
+    connected_users[socket]['number-of-places'] = top3Results.length;
     responseHandler(top3Results);
   });
 }
@@ -97,25 +98,25 @@ function handle_emotion(socket, image_path, place) {
     console.log("storing emotions for the images");
 
     // Store emotions for each image for each socket
-    //image_scores[socket].push([]);
-    if (image_scores[socket][place] == undefined) {
-      image_scores[socket][place] = []
+    //connected_users[socket].push([]);
+    if (connected_users[socket]['places'][place] == undefined) {
+      connected_users[socket]['places'][place] = []
     }
 
     if (emotions.length == 0 ) {
       console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
-      image_scores[socket][place].push(0);
+      connected_users[socket]['places'][place].push(0);
     } else {
-      image_scores[socket][place].push(calculatePlaceScore(emotions[0]['scores']));
+      connected_users[socket]['places'][place].push(calculatePlaceScore(emotions[0]['scores']));
     }
 
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    totalimages = totalImages(image_scores[socket]);
-    console.log("number of images taken so, far " + totalimages + "/" + NUMBER_OF_PLACES * IMAGES_PER_PLACE);
+    totalimages = totalImages(connected_users[socket]);
+    console.log("number of images taken so, far " + totalimages);
 
-    if (totalimages >= NUMBER_OF_PLACES * IMAGES_PER_PLACE) {
+    if (totalimages >= connected_users[socket]['number-of-places']) {
       // Recievd all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
@@ -132,7 +133,7 @@ function handle_emotion(socket, image_path, place) {
       var maxScore = -10;
       var placeIndex = -1;
 
-      places = image_scores[socket];
+      places = connected_users[socket]['places'];
       Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
         places[place].forEach(function (score) {
@@ -148,8 +149,8 @@ function handle_emotion(socket, image_path, place) {
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
 //      var aggregateScore = 0;
-//      Object.keys(image_scores).forEach(function (user) {
-//        aggregateScore += image_scores[user][i];
+//      Object.keys(connected_users).forEach(function (user) {
+//        aggregateScore += connected_users[user][i];
 //      });
 //      if (aggregateScore > maxScore) {
 //        maxScore = aggregateScore;
