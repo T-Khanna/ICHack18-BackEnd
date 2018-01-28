@@ -25,6 +25,7 @@ app.listen(port);
 var image_scores = {};
 var searchPlaces = {};
 var NUMBER_OF_PLACES = 3;
+var IMAGES_PER_PLACE = 3;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
@@ -115,7 +116,7 @@ function handle_emotion(socket, image_path, place) {
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    if (Object.keys(image_scores[socket]).length >= NUMBER_OF_PLACES) {
+    if (totalImages(image_scores[socket]) >= NUMBER_OF_PLACES * IMAGES_PER_PLACE) {
       // Recievd all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
@@ -135,7 +136,7 @@ function handle_emotion(socket, image_path, place) {
       places = image_scores[socket];
       Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
-        image_scores[socket][place].forEach(function (score) {
+        places[place].forEach(function (score) {
           aggregateScore += score;
         });
         if (aggregateScore > maxScore) {
@@ -160,6 +161,16 @@ function handle_emotion(socket, image_path, place) {
       socket.emit('best-place', searchPlaces[placeIndex]);
     }
   }
+}
+
+function totalImages(places) {
+  total = 0;
+  Object.keys(places).forEach(function (place) {
+    places[place].forEach(function (score) {
+      total += 1
+    });
+  });
+  return total
 }
 
 function calculatePlaceScore(emotionScores) {
