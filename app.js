@@ -3,7 +3,7 @@ var fs = require('fs');
 var port = process.env.PORT || 8080;
 var hostname_url = 'https://emotion-picker.herokuapp.com'
 var http = require('http');
-var randomstring = require('randomstring');
+var randomString = require('randomstring');
 var cognitive = require('./cognitive.js');
 
 // Send index.html to all requests
@@ -44,8 +44,8 @@ io.on('connection', function (socket) {
   });
 
   socket.on('image', function(imagedata, place) {
-    console.log("recieved file");
-    var image_path = "/images/" + randomstring.generate() + ".jpg"
+    console.log("received file");
+    var image_path = "/images/" + randomString.generate() + ".jpg"
     fs.writeFileSync(__dirname + image_path, imagedata, "binary");
     console.log("saved file");
 
@@ -115,11 +115,11 @@ function handle_emotion(socket, image_path, place) {
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    totalimages = totalImages(connected_users[socket]['places']);
-    console.log("number of images taken so, far " + totalimages);
+    var totalImages = totalImages(connected_users[socket]['places']);
+    console.log("number of images taken so, far " + totalImages);
 
-    if (totalimages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
-      // Recievd all images, choose best image
+    if (totalImages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
+      // Received all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
       // send place back to everyone
@@ -133,9 +133,9 @@ function handle_emotion(socket, image_path, place) {
       console.log("got " + NUMBER_OF_PLACES + " of places");
 
       var maxScore = -10;
-      var placeIndex = -1;
+      var placeId = -1;
 
-      places = connected_users[socket]['places'];
+      var places = connected_users[socket]['places'];
       Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
         places[place].forEach(function (score) {
@@ -143,11 +143,11 @@ function handle_emotion(socket, image_path, place) {
         });
         if (aggregateScore > maxScore) {
           maxScore = aggregateScore;
-          placeIndex = place;
+          placeId = place;
         }
       });
 
-      console.log("found highest score at place: " + placeIndex + ", with score " + maxScore);
+      console.log("found highest score at place: " + placeId + ", with score " + maxScore);
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
 //      var aggregateScore = 0;
@@ -160,13 +160,13 @@ function handle_emotion(socket, image_path, place) {
 //      }
 //    }
 
-      socket.emit('best-place', placeIndex);
+      socket.emit('best-place', placeId);
     }
   }
 }
 
 function totalImages(places) {
-  total = 0;
+  var total = 0;
   Object.keys(places).forEach(function (place) {
     places[place].forEach(function (score) {
       total += 1
