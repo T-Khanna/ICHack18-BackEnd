@@ -253,11 +253,13 @@ function handle_emotion(client_id, image_path, place) {
             });
           });
 
-          io.sockets.emit('best-place', {
-            'final_place': max_place,
-            'graph_data': graph_data,
-            'user': index
-          });
+          var data =
+          {'final_place': max_place,
+          'graph_data': graph_data,
+          'user': index
+          };
+          io.sockets.emit('best-place', data);
+          console.log("sending data to client: " + JSON.stringify(data));
       }
 //      release();
 //    });
