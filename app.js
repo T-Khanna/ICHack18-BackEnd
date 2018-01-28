@@ -24,6 +24,7 @@ app.listen(port);
 
 var connected_users = {};
 var NUMBER_OF_PLACES = 3;
+var IMAGES_PER_PLACE = 3;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
@@ -104,7 +105,7 @@ function handle_emotion(socket, image_path, place) {
       connected_users[socket]['places'][place] = []
     }
 
-    if (emotions.length == 0 ) {
+    if (emotions.length == 0) {
       console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
       connected_users[socket]['places'][place].push(0);
     } else {
@@ -117,7 +118,7 @@ function handle_emotion(socket, image_path, place) {
     totalimages = totalImages(connected_users[socket]['places']);
     console.log("number of images taken so, far " + totalimages);
 
-    if (totalimages >= connected_users[socket]['number-of-places']) {
+    if (totalimages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
       // Recievd all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
