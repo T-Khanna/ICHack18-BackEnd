@@ -133,6 +133,7 @@ function handle_emotion(client_id, image_path, place) {
 
     var totalNumberOfImages = totalImages(connected_users[client_id]['places']);
     console.log("number of images taken so, far " + totalNumberOfImages);
+    console.log("number of images we're expecting for each place: " + connected_users[client_id]['number-of-places'] * IMAGES_PER_PLACE);
 
     if (totalNumberOfImages >= connected_users[client_id]['number-of-places'] * IMAGES_PER_PLACE) {
       // Received all images, choose best image
