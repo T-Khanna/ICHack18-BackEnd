@@ -108,10 +108,11 @@ function handle_emotion(socket, image_path, place) {
     }
 
     if (emotions.length == 0 ) {
-      console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place);
-      return;
+      console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
+      image_scores[socket][place].push(0);
+    } else {
+      image_scores[socket][place].push(calculatePlaceScore(emotions[0]['scores']));
     }
-    image_scores[socket][place].push(calculatePlaceScore(emotions[0]['scores']))
 
     //Emotion debugging
     socket.emit('emotions', emotions);
