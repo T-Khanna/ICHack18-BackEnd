@@ -6,7 +6,7 @@ var http = require('http');
 var randomstring = require('randomstring');
 var cognitive = require('./cognitive.js');
 
-// Send index.html to all requests 
+// Send index.html to all requests
 var app = http.createServer(function(req, res) {
   res.writeHead(200, {'Content-Type': 'image/jpg'});
   try {
@@ -23,7 +23,8 @@ var io = require('socket.io').listen(app);
 app.listen(port);
 
 var image_scores = {};
-var searchPlaces = [];
+var searchPlaces = {};
+var NUMBER_OF_PLACES = 3;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
@@ -34,23 +35,26 @@ io.on('connection', function (socket) {
     getNearbyPlaces(searchTerm, userLocation, function(result) {
       for (var i = 0; i < result.length; i++) {
         var place = result[i];
-        searchPlaces[i] = place['place_id'];
+        place_id = place['place_id']
+        searchPlaces[place_id] = place_id
       }
       console.log("Place_Ids: " + searchPlaces);
       searchPlaces = result;
-      socket.emit('place-results', result);
+      io.sockets.emit('place-results', result);
     });
   });
 
-  socket.on('image', function(imagedata) {
+  socket.on('image', function(imagedata, place) {
     console.log("recieved file");
     var image_path = "/images/" + randomstring.generate() + ".jpg"
     fs.writeFileSync(__dirname + image_path, imagedata, "binary");
     console.log("saved file");
 
-    image_scores[socket] = [];
+    if (image_scores[socket] == undefined) {
+      image_scores[socket] = {};
+    }
     // perform sentiment analysis here
-    cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path))
+    cognitive.cognitive(hostname_url + image_path, handle_emotion(socket, image_path, place))
   });
 
   socket.on('disconnect', function () {
@@ -84,12 +88,12 @@ function getNearbyPlaces(searchTerm, userLocation, responseHandler) {
   gMapsClient.places(query, function (err, response) {
     var placesArray = response.json['results'];
     // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
-    var top3Results = placesArray.slice(0, 3);
+    var top3Results = placesArray.slice(0, NUMBER_OF_PLACES);
     responseHandler(top3Results);
   });
 }
 
-function handle_emotion(socket, image_path) {
+function handle_emotion(socket, image_path, place) {
   console.log("analysing image " + image_path);
   return function (emotions) {
     //take first emotion
@@ -97,16 +101,19 @@ function handle_emotion(socket, image_path) {
     console.log("storing emotions for the images");
 
     // Store emotions for each image for each socket
-    // image_scores[socket].push({image_path: emotions});
+    //image_scores[socket].push([]);
+    if (image_scores[socket][place] == undefined) {
+      image_scores[socket][place] = []
+    }
 
-    image_scores[socket].push(calculatePlaceScore(emotions[0]['scores']))
+    image_scores[socket][place].push(calculatePlaceScore(emotions[0]['scores']))
 
     //Emotion debugging
-    socket.emit('emotions', emotions);
+    socket.emit('emotions', emotions); console.log(image_scores[socket].length);
 
-    if (image_scores[socket].length >= 3) {
+    if (Object.keys(image_scores[socket]).length >= NUMBER_OF_PLACES) {
       // Recievd all images, choose best image
-      // TODO: need all group to submit images
+      // TODO: need all group to submit mages
       // choose place that is most prefered
       // send place back to everyone
 
@@ -116,21 +123,37 @@ function handle_emotion(socket, image_path) {
       // "happiness":0.0143168205,"neutral":0.98168993,
       // "sadness":0.000220218935,"surprise":0.000003459858}}]
 
+      console.log("got " + NUMBER_OF_PLACES + " of places");
+
       var maxScore = -10;
       var placeIndex = -1;
-      for (var i = 0; i < 3; i++) {
+
+      places = image_scores[socket];
+      Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
-        Object.keys(image_scores).forEach(function (user) {
-          aggregateScore += image_scores[user][i];
+        image_scores[socket][place].forEach(function (score) {
+          aggregateScore += score;
         });
         if (aggregateScore > maxScore) {
           maxScore = aggregateScore;
-          placeIndex = i;
+          placeIndex = place;
         }
-      }
+      });
+
+      console.log("found highest score: " + placeIndex + ", with score " + maxScore);
+
+//    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
+//      var aggregateScore = 0;
+//      Object.keys(image_scores).forEach(function (user) {
+//        aggregateScore += image_scores[user][i];
+//      });
+//      if (aggregateScore > maxScore) {
+//        maxScore = aggregateScore;
+//        placeIndex = i;
+//      }
+//    }
 
       socket.emit('best-place', searchPlaces[placeIndex]);
-      console.log("recieved at least threee photos");
     }
   }
 }
