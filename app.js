@@ -203,6 +203,7 @@ function handle_emotion(client_id, image_path, place) {
           s += places[place]['sadness'];
         });
         places_score[place] = {'happiness': h/count, 'neutral': n/count, 'sadness':s/count};
+        console.log("place " + place + " has score " + JSON.stringify(places_score[place]));
       });
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
@@ -231,6 +232,7 @@ function handle_emotion(client_id, image_path, place) {
             Object.keys(connected_users).forEach(function (client_id) {
               aggregate_user_place_score += calculatePlaceScore(connected_users[client_id]['places-score'][place]);
             });
+            console.log("got aggregated score of " + aggregate_user_place_score + " for place " + place);
             if (aggregate_user_place_score > max_score) {
               max_score = aggregate_user_place_score;
               max_place = place;
