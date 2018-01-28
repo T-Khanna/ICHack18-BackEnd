@@ -36,7 +36,7 @@ var connected_users = {};
 var unfinished_clients = 0;
 var unfinished_clients_lock = new ReadWriteLock();
 var NUMBER_OF_PLACES = 3;
-var IMAGES_PER_PLACE = 3;
+var IMAGES_PER_PLACE = 2;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
