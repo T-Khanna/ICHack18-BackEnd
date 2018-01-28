@@ -23,7 +23,6 @@ var io = require('socket.io').listen(app);
 app.listen(port);
 
 var image_scores = {};
-var searchPlaces = {};
 var NUMBER_OF_PLACES = 3;
 var IMAGES_PER_PLACE = 3;
 
@@ -34,13 +33,7 @@ io.on('connection', function (socket) {
 
   socket.on('search-places', function (searchTerm, userLocation) {
     getNearbyPlaces(searchTerm, userLocation, function(result) {
-      for (var i = 0; i < result.length; i++) {
-        var place = result[i];
-        place_id = place['place_id']
-        searchPlaces[place_id] = place_id
-      }
-      console.log("Place_Ids: " + searchPlaces);
-      searchPlaces = result;
+      console.log("found places, sending to clients");
       io.sockets.emit('place-results', result);
     });
   });
@@ -117,7 +110,10 @@ function handle_emotion(socket, image_path, place) {
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    if (totalImages(image_scores[socket]) >= NUMBER_OF_PLACES * IMAGES_PER_PLACE) {
+    totalimages = totalImages(image_scores[socket]);
+    console.log("number of images taken so, far " + totalimages + "/" + NUMBER_OF_PLACES * IMAGES_PER_PLACE);
+
+    if (totalimages >= NUMBER_OF_PLACES * IMAGES_PER_PLACE) {
       // Recievd all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
@@ -159,7 +155,7 @@ function handle_emotion(socket, image_path, place) {
 //      }
 //    }
 
-      socket.emit('best-place', searchPlaces[placeIndex]);
+      socket.emit('best-place', placeIndex);
     }
   }
 }
