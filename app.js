@@ -106,10 +106,14 @@ function handle_emotion(socket, image_path, place) {
       image_scores[socket][place] = []
     }
 
+    if (emotions.length == 0 ) {
+      console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place);
+      return;
+    }
     image_scores[socket][place].push(calculatePlaceScore(emotions[0]['scores']))
 
     //Emotion debugging
-    socket.emit('emotions', emotions); console.log(image_scores[socket].length);
+    socket.emit('emotions', emotions);
 
     if (Object.keys(image_scores[socket]).length >= NUMBER_OF_PLACES) {
       // Recievd all images, choose best image
@@ -140,7 +144,7 @@ function handle_emotion(socket, image_path, place) {
         }
       });
 
-      console.log("found highest score: " + placeIndex + ", with score " + maxScore);
+      console.log("found highest score at place: " + placeIndex + ", with score " + maxScore);
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
 //      var aggregateScore = 0;
