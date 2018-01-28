@@ -9,13 +9,22 @@ var ReadWriteLock = require('rwlock');
 
 // Send index.html to all requests
 var app = http.createServer(function(req, res) {
-  res.writeHead(200, {'Content-Type': 'image/jpg'});
-  try {
-    var index = fs.readFileSync(__dirname + req.url);
-    res.end(index);
-  } catch (err) {
-    console.log("Couldn't find file: \n\t" + err);
-    res.end();
+  if (req.url == '/') {
+    files = [];
+    fs.readdirSync(__dirname + '/images/').forEach(file => {
+      files.push(file);
+    });
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.end(JSON.stringify(files));
+  } else {
+    res.writeHead(200, {'Content-Type': 'image/jpg'});
+    try {
+      var index = fs.readFileSync(__dirname + req.url);
+      res.end(index);
+    } catch (err) {
+      console.log("Couldn't find file: \n\t" + err);
+      res.end();
+    }
   }
 });
 
