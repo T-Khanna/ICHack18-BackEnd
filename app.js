@@ -5,6 +5,7 @@ var hostname_url = 'https://emotion-picker.herokuapp.com'
 var http = require('http');
 var randomString = require('randomstring');
 var cognitive = require('./cognitive.js');
+var ReadWriteLock = require('rwlock');
 
 // Send index.html to all requests
 var app = http.createServer(function(req, res) {
@@ -23,6 +24,8 @@ var io = require('socket.io').listen(app);
 app.listen(port);
 
 var connected_users = {};
+var unfinished_clients = 0;
+var unfinished_clients_lock = new ReadWriteLock();
 var NUMBER_OF_PLACES = 3;
 var IMAGES_PER_PLACE = 3;
 
@@ -39,6 +42,16 @@ io.on('connection', function (socket) {
     console.log("searching for places: " + searchTerm);
     getNearbyPlaces(socket, searchTerm, userLocation, function(result) {
       console.log("found places, sending to clients");
+
+      //Get number of clients connected
+      // Race condition on number of clients connected
+      number_of_clients = 0;
+      Object.keys(connected_users).forEach(function (socket) {
+        number_of_clients += 1;
+      });
+
+      unfinished_clients = number_of_clients;
+
       io.sockets.emit('place-results', result);
     });
   });
@@ -115,10 +128,10 @@ function handle_emotion(socket, image_path, place) {
     //Emotion debugging
     socket.emit('emotions', emotions);
 
-    var totalImages = totalImages(connected_users[socket]['places']);
-    console.log("number of images taken so, far " + totalImages);
+    var totalNumberOfImages = totalImages(connected_users[socket]['places']);
+    console.log("number of images taken so, far " + totalNumberOfImages);
 
-    if (totalImages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
+    if (totalNumberOfImages >= connected_users[socket]['number-of-places'] * IMAGES_PER_PLACE) {
       // Received all images, choose best image
       // TODO: need all group to submit mages
       // choose place that is most prefered
@@ -156,11 +169,20 @@ function handle_emotion(socket, image_path, place) {
 //      });
 //      if (aggregateScore > maxScore) {
 //        maxScore = aggregateScore;
-//        placeIndex = i;
+//        placeId = i;
 //      }
 //    }
 
-      socket.emit('best-place', placeId);
+      unfinished_clients_lock.writeLock(function (release) {
+        unfinished_clients -= 1;
+        if (unfinished_clients == 0) {
+          //TODO: calculate best image for clients
+          console.log("found highest score at place: " + placeId + ", with score " + maxScore);
+
+          io.sockets.emit('best-place', placeId);
+        }
+        release();
+      });
     }
   }
 }
