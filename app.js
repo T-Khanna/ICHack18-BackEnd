@@ -103,7 +103,9 @@ function getNearbyPlaces(client_id, searchTerm, userLocation, responseHandler) {
     var placesArray = response.json['results'];
     // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
     var top3Results = placesArray.slice(0, NUMBER_OF_PLACES);
-    connected_users[client_id]['number-of-places'] = top3Results.length;
+    Object.keys(connected_users).forEach(function (id) {
+      connected_users[id]['number-of-places'] = top3Results.length;
+    });
     console.log("found " + top3Results.length + " number of places");
     responseHandler(top3Results);
   });
