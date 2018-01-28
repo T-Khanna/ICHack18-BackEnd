@@ -101,6 +101,7 @@ function getNearbyPlaces(socket, searchTerm, userLocation, responseHandler) {
     // var sortedResults = placesArray.sort(sort_by('rating', true, parseFloat));
     var top3Results = placesArray.slice(0, NUMBER_OF_PLACES);
     connected_users[socket]['number-of-places'] = top3Results.length;
+    console.log("found " + top3Results.length + " number of places");
     responseHandler(top3Results);
   });
 }
@@ -146,7 +147,6 @@ function handle_emotion(socket, image_path, place) {
       console.log("got " + NUMBER_OF_PLACES + " of places");
 
       var maxScore = -10;
-      var placeId = -1;
 
       //Calculate scores for each place
       var places = connected_users[socket]['places'];
@@ -159,8 +159,6 @@ function handle_emotion(socket, image_path, place) {
         });
         places_score[place] = aggregateScore;
       });
-
-      console.log("found highest score at place: " + placeId + ", with score " + maxScore);
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
 //      var aggregateScore = 0;
