@@ -86,7 +86,8 @@ io.on('connection', function (socket) {
 
 var gMapsClient = require('@google/maps').createClient({
   //key: 'AIzaSyDyz2RwNSa3qDRfnclcIgUUWS7Fn5NexfA'
-  key: 'AIzaSyDPFxFyh9hvR7OY4bu8ZU7GVKTHY6YCC2s'
+  // key: 'AIzaSyDPFxFyh9hvR7OY4bu8ZU7GVKTHY6YCC2s'
+  key: 'AIzaSyDbsQI6jFs8RzwS7JkWtYcydRFaYchv2IU'
 });
 
 function getNearbyPlaces(client_id, searchTerm, userLocation, responseHandler) {
