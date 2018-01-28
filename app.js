@@ -164,7 +164,7 @@ function handle_emotion(client_id, image_path, place) {
       console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
       connected_users[client_id]['places'][place].push(0);
     } else {
-      connected_users[client_id]['places'][place].push(calculatePlaceScore(emotions[0]['scores']));
+      connected_users[client_id]['places'][place].push(emotions[0]['scores']);
     }
 
     var totalNumberOfImages = totalImages(connected_users[client_id]['places']);
@@ -192,11 +192,16 @@ function handle_emotion(client_id, image_path, place) {
       connected_users[client_id]['places-score'] = {};
       var places_score = connected_users[client_id]['places-score'];
       Object.keys(places).forEach(function (place) {
-        var aggregateScore = 0;
-        places[place].forEach(function (score) {
-          aggregateScore += score;
+        var h = 0;
+        var n = 0
+        var s = 0;
+        var count = places[place].length;
+        places[place].forEach(function (emotions) {
+          h += places[place]['happiness'];
+          n += places[place]['neutral'];
+          s += places[place]['sadness'];
         });
-        places_score[place] = aggregateScore;
+        places_score[place] = {'happiness': h/count, 'neutral': n/count, 'sadness':s/count};
       });
 
 //    for (var i = 0; i < NUMBER_OF_PLACES; i++) {
@@ -223,7 +228,7 @@ function handle_emotion(client_id, image_path, place) {
           Object.keys(places).forEach(function (place) {
             aggregate_user_place_score = 0;
             Object.keys(connected_users).forEach(function (client_id) {
-              aggregate_user_place_score += connected_users[client_id]['places-score'][place];
+              aggregate_user_place_score += calculatePlaceScore(connected_users[client_id]['places-score'][place]);
             });
             if (aggregate_user_place_score > max_score) {
               max_score = aggregate_user_place_score;
@@ -232,7 +237,23 @@ function handle_emotion(client_id, image_path, place) {
           });
           console.log("found highest score at place: " + max_place + ", with score " + max_score);
 
-          io.sockets.emit('best-place', max_place);
+          var graph_data = [];
+          var index;
+          Object.keys(connected_users).forEach(function (c_id) {
+            graph_data.push({});
+            if (client_id == c_id) {
+              index = graph_data.length-1;
+            }
+            Object.keys(places).forEach(function (place) {
+              graph_data[graph_data.length - 1][place] = connected_users[c_id]['places-score'][place];
+            });
+          });
+
+          io.sockets.emit('best-place', {
+            'final_place': max_place,
+            'graph_data': graph_data,
+            'user': index
+          });
       }
 //      release();
 //    });
@@ -251,15 +272,11 @@ function totalImages(places) {
 }
 
 function calculatePlaceScore(emotionScores) {
-  var angerFactor = -1;
   var sadnessFactor = -0.5;
   var neutralFactor = 1;
-  var surpriseFactor = 1.5;
   var happinessFactor = 2;
-  return angerFactor * emotionScores['anger'] +
-    sadnessFactor * emotionScores['sadness'] +
+  return sadnessFactor * emotionScores['sadness'] +
     neutralFactor * emotionScores['neutral'] +
-    surpriseFactor * emotionScores['surprise'] +
     happinessFactor * emotionScores['happiness'];
 
 }
