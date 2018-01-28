@@ -148,16 +148,16 @@ function handle_emotion(socket, image_path, place) {
       var maxScore = -10;
       var placeId = -1;
 
+      //Calculate scores for each place
       var places = connected_users[socket]['places'];
+      connected_users[socket]['places-score'] = {};
+      var places_score = connected_users[socket]['places-score'];
       Object.keys(places).forEach(function (place) {
         var aggregateScore = 0;
         places[place].forEach(function (score) {
           aggregateScore += score;
         });
-        if (aggregateScore > maxScore) {
-          maxScore = aggregateScore;
-          placeId = place;
-        }
+        places_score[place] = aggregateScore;
       });
 
       console.log("found highest score at place: " + placeId + ", with score " + maxScore);
@@ -175,11 +175,27 @@ function handle_emotion(socket, image_path, place) {
 
       unfinished_clients_lock.writeLock(function (release) {
         unfinished_clients -= 1;
+        console.log("Waiting on " + unfinished_clients + " clients");
         if (unfinished_clients == 0) {
-          //TODO: calculate best image for clients
-          console.log("found highest score at place: " + placeId + ", with score " + maxScore);
+          console.log("No longer waiting on clients");
+          //Calculate best image for clients
 
-          io.sockets.emit('best-place', placeId);
+          max_score = -100;
+          max_place = null;
+
+          places.forEach(function (place) {
+            aggregate_user_place_score = 0;
+            Object.keys(connected_users).forEach(function (socket) {
+              aggregate_user_place_score += connected_users[socket]['places-score'][place];
+            });
+            if (aggregate_user_place_score > max_score) {
+              max_score = aggregate_user_place_score;
+              max_place = place;
+            }
+          });
+          console.log("found highest score at place: " + max_place + ", with score " + max_score);
+
+          io.sockets.emit('best-place', max_place);
         }
         release();
       });
