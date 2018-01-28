@@ -163,7 +163,7 @@ function handle_emotion(client_id, image_path, place) {
 
     if (emotions.length == 0) {
       console.log("couldn't find any emotions for image at: " + image_path + ", place: " + place + ". Giving default score of 0.");
-      connected_users[client_id]['places'][place].push(0);
+      connected_users[client_id]['places'][place].push({'happiness':0, 'neutral':0, 'sadness':0});
     } else {
       connected_users[client_id]['places'][place].push(emotions[0]['scores']);
     }
