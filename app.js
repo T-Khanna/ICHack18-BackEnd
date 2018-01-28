@@ -116,7 +116,7 @@ function handle_emotion(socket, image_path) {
       // "happiness":0.0143168205,"neutral":0.98168993,
       // "sadness":0.000220218935,"surprise":0.000003459858}}]
 
-      var maxScore = 0;
+      var maxScore = -10;
       var placeIndex = -1;
       for (var i = 0; i < 3; i++) {
         var aggregateScore = 0;
@@ -136,11 +136,11 @@ function handle_emotion(socket, image_path) {
 }
 
 function calculatePlaceScore(emotionScores) {
-  var angerFactor = 0.1;
-  var sadnessFactor = 0.2;
-  var neutralFactor = 0.5;
-  var surpriseFactor = 0.8;
-  var happinessFactor = 1;
+  var angerFactor = -1;
+  var sadnessFactor = -0.5;
+  var neutralFactor = 1;
+  var surpriseFactor = 1.5;
+  var happinessFactor = 2;
   return angerFactor * emotionScores['anger'] +
     sadnessFactor * emotionScores['sadness'] +
     neutralFactor * emotionScores['neutral'] +
