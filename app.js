@@ -31,9 +31,9 @@ var IMAGES_PER_PLACE = 3;
 
 console.log("server listening on port " + port);
 io.on('connection', function (socket) {
-  console.log("user connected");
-
   var client_id = randomString.generate();
+  console.log("user " + client_id + " connected");
+
   //Set up basic user data
   connected_users[client_id] = {};
   connected_users[client_id]['socket'] = socket;
